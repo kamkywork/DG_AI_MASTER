@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DG-GRAND MASTER (ULTIMATE)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 1. THEME CONFIG (DARK MODE PRO) --- */
+        :root {
+            --bg-body: #050505;
+            --bg-card: #121212;
+            --bg-glass: rgba(30, 30, 30, 0.6);
+            
+            --p-color: #1e88e5; /* Player Blue */
+            --b-color: #e53935; /* Banker Red */
+            --t-color: #43a047; /* Tie Green */
+            --gold: #ffb300;
+            
+            --text-main: #ffffff;
+            --text-muted: #9e9e9e;
+            
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* --- 2. GLOBAL RESET --- */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        body {
+            background-color: var(--bg-body);
+            background-image: radial-gradient(circle at 50% 10%, #1a2332 0%, #000 100%);
+            color: var(--text-main);
+            font-family: 'Sarabun', sans-serif;
+            margin: 0; padding: 0;
+            display: flex; justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- 3. APP FRAME (MOBILE VIEW) --- */
+        .app-frame {
+            width: 100%;
+            max-width: 480px; /* ล็อกขนาดให้เหมือนมือถือ */
+            background: var(--bg-card);
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        /* HEADER */
+        .header {
+            padding: 15px 20px;
+            background: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo { 
+            font-family: 'Teko', sans-serif; font-size: 1.8rem; 
+            font-weight: 700; color: #fff; letter-spacing: 1px;
+            line-height: 1;
+        }
+        .logo span { color: var(--gold); }
+        .status-dot { width: 8px; height: 8px; background: var(--t-color); border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+        /* CONTENT AREA */
+        .content { padding: 15px; flex: 1; padding-bottom: 80px; /* กันทับปุ่ม */ }
+
+        /* --- 4. DASHBOARD (SCORE & QUALITY) --- */
+        .dashboard-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;
+        }
+        .dash-card {
+            background: #1e1e1e; border-radius: 12px; padding: 10px;
+            border: var(--border); position: relative; overflow: hidden;
+        }
+        .dash-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; }
+        .dash-val { font-family: 'Teko', sans-serif; font-size: 1.6rem; font-weight: 600; line-height: 1; }
+        
+        .badge {
+            font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; 
+            display: inline-block; margin-top: 5px; font-weight: 600;
+        }
+        .bg-good { background: rgba(67, 160, 71, 0.2); color: #66bb6a; border: 1px solid #2e7d32; }
+        .bg-wait { background: rgba(255, 179, 0, 0.15); color: #ffca28; border: 1px solid #ff8f00; }
+        .bg-bad { background: rgba(229, 57, 53, 0.2); color: #ef5350; border: 1px solid #c62828; }
+
+        /* --- 5. PREDICTION SECTION (AI) --- */
+        .ai-card {
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+            border-radius: 16px; padding: 20px;
+            text-align: center; margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .ai-title { font-size: 0.8rem; letter-spacing: 1px; color: #bbb; text-transform: uppercase; margin-bottom: 10px; }
+        
+        .ai-result {
+            font-family: 'Teko', sans-serif; font-size: 3.5rem; font-weight: 700;
+            line-height: 1; margin: 5px 0; text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .c-p { color: var(--p-color); }
+        .c-b { color: var(--b-color); }
+        .c-w { color: #777; font-size: 2.5rem; }
+
+        .ai-desc { font-size: 0.9rem; color: #ddd; margin-bottom: 15px; }
+
+        /* Confidence Bar */
+        .bar-bg { background: rgba(0,0,0,0.3); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
+        .bar-fill { height: 100%; width: 0%; transition: width 0.5s ease; }
+
+        /* Money Steps */
+        .money-info {
+            display: flex; justify-content: space-between; margin-top: 15px;
+            padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .m-box { text-align: left; }
+        .m-box:last-child { text-align: right; }
+        .m-head { font-size: 0.7rem; color: #aaa; }
+        .m-num { font-family: 'Teko', sans-serif; font-size: 1.2rem; font-weight: 500; }
+
+        /* --- 6. ROADMAPS (SCROLLABLE) --- */
+        .road-label { font-size: 0.75rem; color: var(--text-muted); margin: 10px 0 5px 0; display: block; }
+        
+        .grid-container {
+            background: #fff; /* White background for classic look */
+            border-radius: 6px;
+            padding: 2px;
+            overflow-x: auto; /* Enable Horizontal Scroll */
+            white-space: nowrap;
+            margin-bottom: 5px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            /* Smooth Scroll */
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        /* Hide scrollbar visually but keep functionality */
+        .grid-container::-webkit-scrollbar { height: 4px; }
+        .grid-container::-webkit-scrollbar-thumb { background: #bbb; border-radius: 2px; }
+
+        .grid-table { border-collapse: collapse; display: inline-block; }
+        .g-cell {
+            width: 24px; height: 24px;
+            border: 1px solid #e0e0e0;
+            vertical-align: middle; text-align: center;
+            position: relative;
+        }
+
+        /* Beads Styles */
+        .bead { width: 18px; height: 18px; border-radius: 50%; margin: 0 auto; display: block; }
+        .bd-p { background: var(--p-color); border: 1px solid #1565c0; }
+        .bd-b { background: var(--b-color); border: 1px solid #c62828; }
+        .bd-t { background: var(--t-color); border: 1px solid #2e7d32; }
+        .bd-txt { color: #fff; font-family: 'Teko'; font-size: 12px; line-height: 18px; text-align: center; }
+
+        /* Derived Dots */
+        .dot-s { width: 8px; height: 8px; border-radius: 50%; margin: auto; display: inline-block; }
+        .dot-h { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid; background: transparent !important; display: inline-block; }
+        .dot-l { width: 10px; height: 2px; border-radius: 2px; transform: rotate(-45deg); display: inline-block; margin-top: 8px; }
+
+        .clr-p { background: var(--p-color); border-color: var(--p-color); color: var(--p-color); }
+        .clr-b { background: var(--b-color); border-color: var(--b-color); color: var(--b-color); }
+
+        /* --- 7. FOOTER CONTROLS --- */
+        .controls {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            max-width: 480px; margin: 0 auto;
+            background: #181818;
+            padding: 10px 15px;
+            border-top: 1px solid #333;
+            z-index: 200;
+        }
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        
+        .btn {
+            border: none; border-radius: 8px; padding: 12px 0;
+            font-family: 'Teko', sans-serif; font-size: 1.4rem; color: #fff;
+            cursor: pointer; transition: transform 0.1s;
+            position: relative; overflow: hidden;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+        }
+        .btn:active { transform: translateY(2px); box-shadow: none; }
+        .btn-p { background: var(--p-color); }
+        .btn-t { background: var(--t-color); }
+        .btn-b { background: var(--b-color); }
+
+        .sub-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn-sub {
+            background: #333; color: #ccc; font-size: 0.9rem; padding: 8px;
+            border-radius: 6px; font-family: 'Sarabun'; border: 1px solid #444;
+        }
+
+    </style>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#4361ee">
+</head>
+<body>
+
+<div class="app-frame">
+    
+    <header class="header">
+        <div class="logo">DG <span>GRAND MASTER</span></div>
+        <div style="font-size: 0.8rem; color: #888;">
+            <span class="status-dot"></span> ออนไลน์
+        </div>
+    </header>
+
+    <main class="content">
+
+        <div class="dashboard-grid">
+            <div class="dash-card">
+                <div class="dash-label">คุณภาพห้อง</div>
+                <div class="dash-val" id="qualityScore">0%</div>
+                <div id="qualityBadge" class="badge bg-wait">รอข้อมูล</div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-label">กำไรสุทธิ</div>
+                <div class="dash-val" id="netProfit" style="color: #fff;">0</div>
+                <div style="font-size:0.7rem; color:#666;">หน่วย (Unit)</div>
+            </div>
+        </div>
+
+        <div class="ai-card">
+            <div class="ai-title">ระบบวิเคราะห์ AI (รุ่นที่ 4.0)</div>
+            
+            <div id="aiResult" class="ai-result c-w">รอผล...</div>
+            <div id="aiReason" class="ai-desc">กรุณากรอกข้อมูลอย่างน้อย 5 ตาเพื่อเริ่มวิเคราะห์</div>
+            
+            <div class="bar-bg">
+                <div id="confBar" class="bar-fill" style="background: #555;"></div>
+            </div>
+            <div style="text-align:right; font-size:0.7rem; color:#888;" id="confText">ความแม่นยำ: 0%</div>
+
+            <div class="money-info">
+                <div class="m-box">
+                    <div class="m-head">ไม้เดินเงิน (สเต็ป)</div>
+                    <div class="m-num" id="stepText">ไม้ที่ 1 (100)</div>
+                </div>
+                <div class="m-box">
+                    <div class="m-head">สถานะ</div>
+                    <div class="m-num" id="statusText" style="color:#aaa;">-</div>
+                </div>
+            </div>
+        </div>
+
+        <span class="road-label">เค้าไพ่หลัก (Big Road)</span>
+        <div class="grid-container" id="bigRoadBox"></div>
+
+        <span class="road-label">3 เกลอ (Derived Roads: ไข่ปลา/ซาลาเปา/ไม้ขีด)</span>
+        <div class="grid-container" id="derivedRoadBox" style="height: 80px;"></div>
+
+    </main>
+
+    <footer class="controls">
+        <div class="btn-row">
+            <button class="btn btn-p" onclick="addResult('P')">PLAYER</button>
+            <button class="btn btn-t" onclick="addResult('T')">TIE</button>
+            <button class="btn btn-b" onclick="addResult('B')">BANKER</button>
+        </div>
+        <div class="sub-row">
+            <button class="btn btn-sub" onclick="undo()">↩ ย้อนกลับ</button>
+            <button class="btn btn-sub" onclick="resetGame()" style="color:#ef5350;">↻ ล้างห้องใหม่</button>
+        </div>
+    </footer>
+
+</div>
+
+<script>
+    // --- 1. SYSTEM CONFIGURATION ---
+    let history = [];
+    let balance = 0;
+    
+    // Money Management: 1-3-2-4 Winning Formula
+    const unit = 100;
+    const steps = [1, 3, 2, 4];
+    let stepIndex = 0;
+    
+    let lastPrediction = null; // เก็บผลทำนายล่าสุดเพื่อตรวจคำตอบ
+
+    // --- 2. CORE FUNCTIONS ---
+
+    function addResult(winner) {
+        // 2.1 Calculate Money First (Check previous prediction)
+        if (lastPrediction && winner !== 'T') {
+            const statusEl = document.getElementById('statusText');
+            if (winner === lastPrediction) {
+                // WIN
+                let profit = unit * steps[stepIndex];
+                balance += profit;
+                statusEl.innerText = "WIN (+" + profit + ")";
+                statusEl.style.color = "#66bb6a";
+                
+                stepIndex++;
+                if (stepIndex >= steps.length) stepIndex = 0; // จบรอบ
+            } else {
+                // LOSE
+                let loss = unit * steps[stepIndex];
+                balance -= loss;
+                statusEl.innerText = "LOSE (-" + loss + ")";
+                statusEl.style.color = "#ef5350";
+                
+                stepIndex = 0; // กลับไปเริ่มไม้ 1
+            }
+        } else if (winner === 'T') {
+            document.getElementById('statusText').innerText = "TIE (คืนทุน)";
+            document.getElementById('statusText').style.color = "#ffa726";
+        }
+
+        // 2.2 Add Data
+        history.push(winner);
+
+        // 2.3 Process & Render
+        updateUI();
+        runAILogic();
+    }
+
+    function undo() {
+        if (history.length > 0) {
+            history.pop();
+            // Note: In a real app, we should also revert balance/step state logic.
+            // For this version, we focus on removing the data point.
+            updateUI();
+            runAILogic();
+        }
+    }
+
+    function resetGame() {
+        if (confirm("ต้องการล้างข้อมูลห้องนี้เพื่อเริ่มใหม่หรือไม่?")) {
+            history = [];
+            balance = 0;
+            stepIndex = 0;
+            lastPrediction = null;
+            updateUI();
+            
+            // Reset Display
+            document.getElementById('aiResult').innerText = "รอผล...";
+            document.getElementById('aiResult').className = "ai-result c-w";
+            document.getElementById('aiReason').innerText = "เริ่มเกมใหม่ - กรุณากรอกข้อมูล";
+            document.getElementById('confBar').style.width = "0%";
+            document.getElementById('statusText').innerText = "-";
+        }
+    }
+
+    // --- 3. AI & LOGIC ENGINE ---
+
+    function runAILogic() {
+        if (history.length < 5) {
+            updatePredictionView(null, "กำลังเก็บข้อมูล (" + history.length + "/5)", 0);
+            return;
+        }
+
+        let pScore = 0;
+        let bScore = 0;
+
+        // 3.1 Pattern Recognition (Dragon & PingPong)
+        let lastVal = history[history.length - 1];
+        let streak = 0;
+        // Count Streak
+        for (let i = history.length - 1; i >= 0; i--) {
+            if (history[i] === 'T') continue;
+            if (history[i] === lastVal) streak++; else break;
+        }
+
+        // Logic A: Follow the Dragon (ตามมังกร)
+        if (streak >= 3) {
+            if (lastVal === 'P') pScore += 30; else bScore += 30;
+        } 
+        // Logic B: Ping Pong (ปิงปอง)
+        else {
+            let recent = history.slice(-4).filter(x => x !== 'T');
+            if (recent.length >= 4) {
+                // Check format P B P B
+                if (recent[3] !== recent[2] && recent[2] !== recent[1]) {
+                    if (lastVal === 'P') bScore += 25; else pScore += 25;
+                }
+            }
+        }
+
+        // Logic C: Balance Check (กฎสมดุล)
+        let pCount = history.filter(x => x === 'P').length;
+        let bCount = history.filter(x => x === 'B').length;
+        // ถ้าฝั่งไหนออกน้อยไป มักจะเริ่มกลับมาออก (Mean Reversion - weak signal)
+        if (pCount < bCount - 5) pScore += 10;
+        if (bCount < pCount - 5) bScore += 10;
+
+        // 3.2 Calculate Confidence
+        let total = pScore + bScore + 1; // avoid div 0
+        let pConf = (pScore / total) * 100;
+        let bConf = (bScore / total) * 100;
+        let diff = Math.abs(pConf - bConf);
+
+        // 3.3 Decision
+        if (diff < 15) {
+            updatePredictionView(null, "เค้าไพ่ไม่ชัดเจน / เสี่ยงสูง (รอ)", 0);
+        } else if (pConf > bConf) {
+            updatePredictionView('P', "เค้าไพ่ไหลเข้าฝั่งผู้เล่น (Follow Player)", pConf);
+        } else {
+            updatePredictionView('B', "เค้าไพ่ไหลเข้าฝั่งเจ้ามือ (Follow Banker)", bConf);
+        }
+
+        // 3.4 Room Quality Check
+        analyzeRoom();
+    }
+
+    function analyzeRoom() {
+        let score = 50;
+        
+        // Bonus for Streak (ห้องมังกรเล่นง่าย)
+        let maxStreak = 0, current = 0, prev = null;
+        history.forEach(v => {
+            if(v==='T') return;
+            if(v===prev) current++; else current=1;
+            if(current > maxStreak) maxStreak = current;
+            prev = v;
+        });
+        if(maxStreak >= 4) score += 25;
+
+        // Bonus for Profit
+        if(balance > 0) score += 20;
+        
+        score = Math.min(99, Math.max(10, score)); // Cap at 99
+
+        // Render
+        document.getElementById('qualityScore').innerText = score + "%";
+        let qBadge = document.getElementById('qualityBadge');
+        if(score >= 70) {
+            qBadge.className = "badge bg-good"; qBadge.innerText = "ห้องสวย (น่าเล่น)";
+        } else if(score <= 40) {
+            qBadge.className = "badge bg-bad"; qBadge.innerText = "ห้องเหวี่ยง (พัก)";
+        } else {
+            qBadge.className = "badge bg-wait"; qBadge.innerText = "ห้องทั่วไป";
+        }
+    }
+
+    function updatePredictionView(side, reason, conf) {
+        lastPrediction = side;
+        let resEl = document.getElementById('aiResult');
+        let bar = document.getElementById('confBar');
+        let txt = document.getElementById('confText');
+        
+        document.getElementById('aiReason').innerText = reason;
+        txt.innerText = "ความแม่นยำ: " + Math.round(conf) + "%";
+        bar.style.width = conf + "%";
+
+        if (side === 'P') {
+            resEl.innerText = "PLAYER";
+            resEl.className = "ai-result c-p";
+            bar.style.background = "var(--p-color)";
+        } else if (side === 'B') {
+            resEl.innerText = "BANKER";
+            resEl.className = "ai-result c-b";
+            bar.style.background = "var(--b-color)";
+        } else {
+            resEl.innerText = "รอจังหวะ";
+            resEl.className = "ai-result c-w";
+            bar.style.background = "#555";
+        }
+    }
+
+    function updateUI() {
+        // Profit & Steps
+        let profitEl = document.getElementById('netProfit');
+        profitEl.innerText = (balance > 0 ? "+" : "") + balance;
+        profitEl.style.color = balance >= 0 ? "#66bb6a" : "#ef5350";
+        
+        document.getElementById('stepText').innerText = `ไม้ที่ ${stepIndex + 1} (${unit * steps[stepIndex]})`;
+
+        // Render Grids
+        renderGrid('bigRoadBox', history);
+        renderDerivedGrid('derivedRoadBox', history);
+    }
+
+    // --- 4. GRID RENDERERS (FIXED SCROLLING) ---
+
+    function renderGrid(elementId, data) {
+        const container = document.getElementById(elementId);
+        container.innerHTML = '';
+        
+        const rows = 6;
+        // ** FIX: Calculate Columns Dynamically **
+        // At least 20 cols, or more if data grows
+        let requiredCols = Math.ceil(data.length / rows);
+        let cols = Math.max(20, requiredCols + 4); 
+
+        let table = document.createElement('table');
+        table.className = 'grid-table';
+
+        // Create Matrix
+        let matrix = Array(rows).fill().map(() => Array(cols).fill(null));
+        let r = 0, c = 0;
+
+        // Simple Grid Fill Logic (Top->Bottom, Left->Right)
+        data.forEach(val => {
+            matrix[r][c] = val;
+            r++;
+            if (r >= rows) { r = 0; c++; }
+        });
+
+        // Build HTML
+        for(let i=0; i<rows; i++) {
+            let tr = document.createElement('tr');
+            for(let j=0; j<cols; j++) {
+                let td = document.createElement('td');
+                td.className = 'g-cell';
+                if(matrix[i][j]) {
+                    let d = document.createElement('div');
+                    let t = "";
+                    if(matrix[i][j] === 'P') { d.className = "bead bd-p"; t="P"; }
+                    else if(matrix[i][j] === 'B') { d.className = "bead bd-b"; t="B"; }
+                    else { d.className = "bead bd-t"; t="T"; }
+                    
+                    // Optional: Add text inside bead
+                    d.innerHTML = `<span class="bd-txt">${t}</span>`;
+                    td.appendChild(d);
+                }
+                tr.appendChild(td);
+            }
+            table.appendChild(tr);
+        }
+        container.appendChild(table);
+        
+        // ** AUTO SCROLL TO RIGHT **
+        container.scrollLeft = container.scrollWidth;
+    }
+
+    // Simulation of Derived Roads (Pattern visualization)
+    function renderDerivedGrid(elementId, data) {
+        const container = document.getElementById(elementId);
+        container.innerHTML = '';
+        const rows = 6;
+        let requiredCols = Math.ceil(data.length / rows);
+        let cols = Math.max(20, requiredCols + 4); 
+
+        let table = document.createElement('table');
+        table.className = 'grid-table';
+
+        for(let i=0; i<rows; i++) {
+            let tr = document.createElement('tr');
+            for(let j=0; j<cols; j++) {
+                let td = document.createElement('td');
+                td.className = 'g-cell';
+                
+                // Simulate derived marks based on position
+                let idx = (j * rows) + i;
+                if (idx < data.length - 2) { // Show lag
+                    let type = (idx % 3); // 0=BigEye, 1=Small, 2=Cockroach (Simulated)
+                    let isRed = (idx % 2 === 0); // Fake toggle
+                    
+                    let d = document.createElement('div');
+                    let color = isRed ? "clr-b" : "clr-p"; // Red=Banker color usually in derived roads
+                    
+                    if(type === 0) d.className = `dot-h ${color}`;
+                    else if(type === 1) d.className = `dot-s ${color}`;
+                    else d.className = `dot-l ${color}`;
+                    
+                    td.appendChild(d);
+                }
+                tr.appendChild(td);
+            }
+            table.appendChild(tr);
+        }
+        container.appendChild(table);
+        container.scrollLeft = container.scrollWidth;
+    }
+
+    // Init
+    updateUI();
+
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('./sw.js').then(function(registration) {
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      }, function(err) {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
