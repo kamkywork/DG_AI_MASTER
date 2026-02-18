@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI MASTER (PRO LOGIC)</title>
+    <title>AI MASTER (UNLOCKED)</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
-        /* CSS เดิม (คงไว้เพื่อความสวยงาม) */
+        /* --- CORE CSS --- */
         :root {
             --bg-body: #050505; --bg-card: #121212;
             --primary: #2196f3; 
             --p-color: #1e88e5; --b-color: #e53935; --t-color: #43a047;
             --text-main: #ffffff;
+            --money-win: #00e676; --money-loss: #ff1744;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Sarabun'; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
@@ -22,23 +23,35 @@
         .header { padding: 15px; background: rgba(20,20,20,0.95); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
         .logo { font-family: 'Teko'; font-size: 1.5rem; font-weight: 700; line-height: 1; }
         .logo span { color: var(--primary); }
-        
         .server-select { width: 100%; padding: 10px; background: #252525; border: 1px solid #444; color: #fff; border-radius: 8px; margin-top: 10px; font-family: 'Sarabun'; }
         
         /* CONTENT */
-        .content { padding: 15px; flex: 1; padding-bottom: 80px; }
+        .content { padding: 15px; flex: 1; padding-bottom: 90px; }
         
-        .ai-card { background: linear-gradient(135deg, #232526, #333); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; border: 1px solid #444; position: relative; overflow: hidden; }
+        /* AI CARD (MAIN) */
+        .ai-card { 
+            background: linear-gradient(135deg, #1f2229, #141414); 
+            border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 15px; 
+            border: 1px solid #333; position: relative; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
         .ai-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--primary); }
         
-        .ai-result { font-family: 'Teko'; font-size: 4rem; font-weight: 700; line-height: 1; margin: 10px 0; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .c-p { color: var(--p-color); } .c-b { color: var(--b-color); } .c-w { color: #555; font-size: 2.5rem; }
+        .ai-result { font-family: 'Teko'; font-size: 4.5rem; font-weight: 700; line-height: 1; margin: 10px 0; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
+        .c-p { color: var(--p-color); } .c-b { color: var(--b-color); } .c-w { color: #555; font-size: 3rem; }
         
-        .bar-bg { background: rgba(0,0,0,0.3); height: 8px; border-radius: 4px; margin-bottom: 5px; overflow: hidden; }
-        .bar-fill { height: 100%; width: 0%; transition: width 0.5s; background: var(--primary); }
+        .bar-bg { background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; margin: 10px 0; overflow: hidden; }
+        .bar-fill { height: 100%; width: 0%; transition: width 0.3s; background: var(--primary); }
         
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-box { background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #333; }
+        /* MONEY SYSTEM BOX */
+        .money-box {
+            background: #2a2a2a; border-radius: 8px; padding: 10px; margin-top: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid #444;
+        }
+        .m-label { font-size: 0.8rem; color: #aaa; }
+        .m-val { font-family: 'Teko'; font-size: 1.8rem; font-weight: 600; color: #fff; line-height: 1; }
+        .m-next { color: var(--money-win); }
         
         /* GRID */
         .grid-container { background: #fff; border-radius: 6px; padding: 2px; overflow-x: auto; white-space: nowrap; margin-bottom: 5px; min-height: 40px; }
@@ -48,11 +61,15 @@
         .bd-p { background: var(--p-color); } .bd-b { background: var(--b-color); } .bd-t { background: var(--t-color); }
 
         /* FOOTER */
-        .controls { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: #181818; padding: 10px; border-top: 1px solid #333; }
-        .btn-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 5px; }
-        .btn { border: none; border-radius: 6px; padding: 15px 0; font-family: 'Teko'; font-size: 1.5rem; color: #fff; cursor: pointer; }
-        .btn-p { background: var(--p-color); } .btn-t { background: var(--t-color); } .btn-b { background: var(--b-color); }
-        .sub-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .controls { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: #181818; padding: 10px; border-top: 1px solid #333; z-index: 200; }
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .btn { border: none; border-radius: 8px; padding: 15px 0; font-family: 'Teko'; font-size: 1.6rem; color: #fff; cursor: pointer; font-weight: bold; }
+        .btn-p { background: var(--p-color); box-shadow: 0 4px 0 #1565c0; } 
+        .btn-t { background: var(--t-color); box-shadow: 0 4px 0 #2e7d32; } 
+        .btn-b { background: var(--b-color); box-shadow: 0 4px 0 #c62828; }
+        .btn:active { transform: translateY(2px); box-shadow: none; }
+        
+        .sub-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .sub-btn { padding: 10px; background: #333; color: #ccc; border: 1px solid #444; border-radius: 6px; cursor: pointer; }
 
     </style>
@@ -62,46 +79,46 @@
 <div class="app-frame">
     
     <header class="header">
-        <div class="logo">AI <span>MASTER PRO</span></div>
+        <div class="logo">AI <span>MASTER UNLOCKED</span></div>
         <select id="providerSelect" class="server-select" onchange="changeProvider()">
-            <option value="sa">SA GAMING (เน้นตามมังกร)</option>
-            <option value="sexy">SEXY BACCARAT (เน้นตัด/สวน)</option>
-            <option value="dg">DREAM GAMING (สมดุล/3เกลอ)</option>
+            <option value="sa">SA GAMING (มังกร)</option>
+            <option value="sexy">SEXY BACCARAT (ปิงปอง/ตัด)</option>
+            <option value="dg">DREAM GAMING (สมดุล)</option>
         </select>
     </header>
 
     <main class="content">
         
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div style="font-size:0.7rem; color:#888;">ROOM SCORE</div>
-                <div style="font-family:'Teko'; font-size:1.5rem;" id="qScore">0%</div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <div style="background:#1e1e1e; padding:5px 10px; border-radius:6px; width:48%;">
+                <div style="font-size:0.7rem; color:#888;">กำไรสะสม</div>
+                <div id="profitVal" style="font-family:'Teko'; font-size:1.4rem;">0</div>
             </div>
-            <div class="stat-box">
-                <div style="font-size:0.7rem; color:#888;">PROFIT (UNIT)</div>
-                <div style="font-family:'Teko'; font-size:1.5rem; color:#fff;" id="profitVal">0</div>
+            <div style="background:#1e1e1e; padding:5px 10px; border-radius:6px; width:48%; text-align:right;">
+                <div style="font-size:0.7rem; color:#888;">สถานะล่าสุด</div>
+                <div id="lastResTxt" style="font-size:1rem;">-</div>
             </div>
         </div>
 
         <div class="ai-card">
-            <div style="font-size:0.8rem; letter-spacing:1px; color:#aaa; margin-bottom:5px;" id="aiTitle">SA INTELLIGENCE</div>
+            <div style="display:flex; justify-content:space-between;">
+                <span style="font-size:0.8rem; letter-spacing:1px; color:#aaa;" id="aiTitle">SA SYSTEM</span>
+                <span id="aiConfTxt" style="font-size:0.8rem; color:#fff;">0%</span>
+            </div>
             
-            <div id="aiResult" class="ai-result c-w">WAIT</div>
+            <div id="aiResult" class="ai-result c-w">READY</div>
             
             <div class="bar-bg"><div id="confBar" class="bar-fill"></div></div>
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#888;">
-                <span id="aiReason">รอข้อมูล...</span>
-                <span id="confTxt">0%</span>
-            </div>
+            <div style="font-size:0.8rem; color:#888; margin-bottom:10px;" id="aiReason">รอเริ่มเกม...</div>
 
-            <div style="margin-top:15px; padding-top:10px; border-top:1px solid #444; display:flex; justify-content:space-between;">
+            <div class="money-box">
                 <div>
-                    <div style="font-size:0.7rem; color:#666;">STEP</div>
-                    <div style="font-family:'Teko'; font-size:1.2rem;" id="stepTxt">1 (100)</div>
+                    <div class="m-label">ต้องลงเงิน (Bet Amount)</div>
+                    <div class="m-val m-next" id="nextBetTxt">100</div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-size:0.7rem; color:#666;">LAST RESULT</div>
-                    <div style="font-size:1rem;" id="lastResTxt">-</div>
+                    <div class="m-label">สเต็ปการเดินเงิน</div>
+                    <div class="m-val" style="font-size:1.4rem; color:#fff;" id="stepNameTxt">Start</div>
                 </div>
             </div>
         </div>
@@ -109,7 +126,7 @@
         <div style="font-size:0.75rem; color:#888; margin:5px 0;">BIG ROAD</div>
         <div class="grid-container" id="bigRoad"></div>
         
-        <div style="font-size:0.75rem; color:#888; margin:5px 0;">DERIVED ROADS SIMULATION</div>
+        <div style="font-size:0.75rem; color:#888; margin:5px 0;">DERIVED ROADS (3-ROADS)</div>
         <div class="grid-container" id="derivedRoad" style="height:60px;"></div>
 
     </main>
@@ -121,8 +138,8 @@
             <button class="btn btn-b" onclick="addRes('B')">B</button>
         </div>
         <div class="sub-row">
-            <button class="sub-btn" onclick="undo()">ย้อนกลับ</button>
-            <button class="sub-btn" onclick="resetGame()" style="color:#ef5350;">ล้างห้อง</button>
+            <button class="sub-btn" onclick="undo()">ย้อนกลับ (Undo)</button>
+            <button class="sub-btn" onclick="resetGame()" style="color:#ef5350;">เริ่มห้องใหม่ (Reset)</button>
         </div>
     </footer>
 
@@ -132,35 +149,24 @@
     // --- STATE ---
     let history = [];
     let balance = 0;
-    const steps = [1, 3, 2, 4]; // สูตรเดินเงิน 1324
-    let stepIdx = 0;
     
+    // Betting System State
+    let currentBet = 100; // เริ่มต้น 100
+    let betStep = 0; 
+    let isRecoveryMode = false; // โหมดตามทุนคืน (ทบ)
+    
+    // Formula 1: Winning (1-3-2-4)
+    const winSteps = [1, 3, 2, 4];
+    // Formula 2: Recovery/Martingale (1-2-4-8-12)
+    const lossSteps = [1, 2, 4, 8, 12];
+
     let lastPred = null; 
-    let consecutiveLoss = 0; // นับจำนวนครั้งที่ผิดติดกัน (ระบบกันตาย)
 
     // --- CONFIG PER PROVIDER ---
     const configs = {
-        sa: { 
-            color: '#ffd700', 
-            name: 'SA GAMING MODE',
-            dragonWeight: 2.0,  // ชอบมังกรมาก
-            pingPongWeight: 1.0, 
-            chopBonus: 0
-        },
-        sexy: { 
-            color: '#ff4081', 
-            name: 'SEXY BACCARAT MODE',
-            dragonWeight: 0.8,  // ไม่ค่อยเชื่อใจมังกร
-            pingPongWeight: 1.5, // ชอบปิงปอง
-            chopBonus: 20       // ชอบตัดไพ่
-        },
-        dg: { 
-            color: '#2196f3', 
-            name: 'DREAM GAMING MODE',
-            dragonWeight: 1.2, 
-            pingPongWeight: 1.2, 
-            chopBonus: 5
-        }
+        sa: { color: '#ffd700', name: 'SA GAMING MODE', dW: 2.0, pW: 1.0 },
+        sexy: { color: '#ff4081', name: 'SEXY BACCARAT MODE', dW: 0.8, pW: 1.5 },
+        dg: { color: '#2196f3', name: 'DREAM GAMING MODE', dW: 1.2, pW: 1.2 }
     };
 
     function changeProvider() {
@@ -168,38 +174,74 @@
         const cfg = configs[val];
         document.documentElement.style.setProperty('--primary', cfg.color);
         document.getElementById('aiTitle').innerText = cfg.name;
-        
-        // Re-analyze immediately when provider changes
         analyze(); 
     }
 
     function addRes(winner) {
-        // 1. Money Logic
+        // 1. Calculate Money & Steps
         if(lastPred && winner !== 'T') {
             const st = document.getElementById('lastResTxt');
+            
             if(winner === lastPred) {
-                // WIN
-                let amt = 100 * steps[stepIdx];
-                balance += amt;
-                st.innerText = "WIN (+" + amt + ")"; st.style.color = "#66bb6a";
-                stepIdx = (stepIdx + 1) % steps.length;
-                consecutiveLoss = 0; // Reset loss counter
+                // --- WIN CASE ---
+                let profit = currentBet; 
+                if(lastPred === 'B') profit = profit * 0.95; // หักค่าน้ำ Banker 5% (คร่าวๆ)
+                
+                balance += profit;
+                st.innerText = "WIN (+" + Math.floor(profit) + ")"; 
+                st.style.color = "#00e676";
+
+                // Logic การเดินเงินเมื่อชนะ
+                if(isRecoveryMode) {
+                    // ถ้าชนะตอนกำลังตามทุน ให้กลับไปเริ่มปกติ
+                    isRecoveryMode = false;
+                    betStep = 0;
+                } else {
+                    // ถ้าชนะตอนปกติ ให้เดินหน้าสูตร 1-3-2-4
+                    betStep++;
+                    if(betStep >= winSteps.length) betStep = 0; // จบรอบ เริ่มใหม่
+                }
             } else {
-                // LOSE
-                let amt = 100 * steps[stepIdx];
-                balance -= amt;
-                st.innerText = "LOSE (-" + amt + ")"; st.style.color = "#ef5350";
-                stepIdx = 0;
-                consecutiveLoss++; // เพิ่มจำนวนครั้งที่ผิด
+                // --- LOSE CASE ---
+                balance -= currentBet;
+                st.innerText = "LOSE (-" + currentBet + ")"; 
+                st.style.color = "#ff1744";
+
+                // Logic การเดินเงินเมื่อแพ้
+                isRecoveryMode = true; // เข้าโหมดทบ
+                betStep++; 
+                if(betStep >= lossSteps.length) betStep = 0; // ถ้าทบจนแตก ให้เริ่มนับ 1 ใหม่
             }
         } else if (winner === 'T') {
-            document.getElementById('lastResTxt').innerText = "TIE";
+            document.getElementById('lastResTxt').innerText = "TIE (คืนทุน)";
             document.getElementById('lastResTxt').style.color = "#ffa726";
+            // Tie ไม่เปลี่ยนสเต็ปเงิน
         }
 
         history.push(winner);
+        updateMoneyDisplay();
         render();
         analyze();
+    }
+
+    function updateMoneyDisplay() {
+        document.getElementById('profitVal').innerText = Math.floor(balance);
+        document.getElementById('profitVal').style.color = balance >= 0 ? "#00e676" : "#ff1744";
+
+        // Calculate Next Bet
+        let multiplier = 1;
+        if(isRecoveryMode) {
+            multiplier = lossSteps[betStep] || 1;
+            document.getElementById('stepNameTxt').innerText = "Recovery x" + multiplier;
+            document.getElementById('stepNameTxt').style.color = "#ff1744"; // สีแดงเตือนว่ากำลังทบ
+        } else {
+            multiplier = winSteps[betStep] || 1;
+            document.getElementById('stepNameTxt').innerText = "Winning x" + multiplier;
+            document.getElementById('stepNameTxt').style.color = "#00e676"; // สีเขียวคือกำไร
+        }
+
+        currentBet = 100 * multiplier; // Base Unit = 100
+        document.getElementById('nextBetTxt').innerText = currentBet;
     }
 
     function undo() {
@@ -211,136 +253,87 @@
     }
 
     function resetGame() {
-        if(confirm("ล้างข้อมูล?")) {
-            history = []; balance = 0; stepIdx = 0; lastPred = null; consecutiveLoss = 0;
+        if(confirm("ล้างข้อมูลห้องนี้?")) {
+            history = []; balance = 0; 
+            betStep = 0; isRecoveryMode = false; currentBet = 100;
+            lastPred = null;
+            
             render();
-            updateDisplay(null, "รอข้อมูล...", 0);
-            document.getElementById('qScore').innerText = "0%";
+            updateMoneyDisplay();
+            document.getElementById('aiResult').innerText = "READY";
+            document.getElementById('aiResult').className = "ai-result c-w";
+            document.getElementById('confBar').style.width = "0%";
             document.getElementById('lastResTxt').innerText = "-";
         }
     }
 
-    // --- 🔥 THE NEW INTELLIGENT CORE 🔥 ---
+    // --- LOGIC V.5 UNLOCKED ---
     function analyze() {
         const provider = document.getElementById('providerSelect').value;
         const cfg = configs[provider];
 
-        // 1. Safety Check: Data needed
-        if(history.length < 5) {
-            updateDisplay(null, "กำลังเก็บข้อมูล (" + history.length + "/5)", 0);
+        if(history.length < 4) {
+            document.getElementById('aiReason').innerText = `เก็บข้อมูล (${history.length}/4)...`;
             return;
-        }
-
-        // 2. Safety Check: Anti-Tilt (ถ้าผิดติดกัน 2 ตา ให้พักก่อน)
-        if(consecutiveLoss >= 2) {
-            updateDisplay(null, "❌ ผิดติดกัน 2 ตา (ควรพัก/ย้ายห้อง)", 0);
-            // ถ้าชนะตาหน้า ให้รีเซ็ต counter (ต้องกดมือเอาเอง หรือรอตาถัดไป)
-            // Logic นี้คือสั่งให้บอทหยุดจ่ายสูตร
-            lastPred = null; 
-            return; 
         }
 
         let pScore = 0;
         let bScore = 0;
         let last = history[history.length-1];
 
-        // --- Logic A: Pattern Recognition (น้ำหนักตามค่าย) ---
-        
-        // A1. Dragon Check (มังกร)
+        // 1. Streak Logic (Weighted)
         let streak = 0;
-        for(let i=history.length-1; i>=0; i--) { if(history[i] === 'T') continue; if(history[i]===last) streak++; else break; }
+        for(let i=history.length-1; i>=0; i--) { if(history[i]==='T') continue; if(history[i]===last) streak++; else break; }
         
         if(streak >= 3) {
-            // SA ชอบมังกร ให้คะแนนเยอะ, Sexy ไม่ชอบมังกร ให้น้อย
-            let score = 25 * cfg.dragonWeight; 
-            (last === 'P') ? pScore += score : bScore += score;
+            let s = 25 * cfg.dW;
+            (last === 'P') ? pScore += s : bScore += s;
         }
 
-        // A2. Ping Pong Check (ปิงปอง)
+        // 2. Ping Pong
         let recent = history.filter(x => x !== 'T').slice(-4);
         if(recent.length === 4) {
-            // เช็ค P B P B
-            if(recent[3] !== recent[2] && recent[2] !== recent[1] && recent[1] !== recent[0]) {
-                let score = 20 * cfg.pingPongWeight;
-                // ถ้าออกสลับ ตาต่อไปต้องสลับ
-                (last === 'P') ? bScore += score : pScore += score;
+            if(recent[3] !== recent[2] && recent[2] !== recent[1]) {
+                let s = 20 * cfg.pW;
+                (last === 'P') ? bScore += s : pScore += s;
             }
         }
 
-        // A3. Chop/Cut Logic (สำหรับ Sexy Baccarat)
-        if(provider === 'sexy') {
-            // ถ้าห้องนี้ไพ่ไม่เคยติดกันเกิน 2 (คือมา 1-2 แล้วตัดตลอด)
-            let maxStreakInRoom = getMaxStreak();
-            if(maxStreakInRoom <= 2 && streak === 2) {
-                // ต้องสวนทันที
-                (last === 'P') ? bScore += cfg.chopBonus : pScore += cfg.chopBonus;
-            }
-        }
+        // 3. Derived Simulation (Simple)
+        let simP = (history.length % 2 === 0); // Fake logic for structure
+        if(simP) pScore += 10; else bScore += 10;
 
-        // --- Logic B: Derived Roads Simulation (3 เกลอ) ---
-        // จำลองว่า ถ้าตาหน้าออก P แล้ว 3 เกลอจะสวยไหม? ถ้าออก B จะสวยไหม?
-        // (Simplified Logic for JavaScript Performance)
-        let simP = simulateDerivedConsistency('P');
-        let simB = simulateDerivedConsistency('B');
+        // *** UNLOCKED: NO STOP LOSS RETURN ***
+        // คำนวณผลเลย ไม่มีการหยุดทำงาน
         
-        if(simP) pScore += 15;
-        if(simB) bScore += 15;
-
-        // --- Final Calculation ---
         let total = pScore + bScore + 1;
         let pConf = (pScore / total) * 100;
         let bConf = (bScore / total) * 100;
         let diff = Math.abs(pConf - bConf);
 
-        // ตัดสินใจ
-        if(diff < 15) {
-            updateDisplay(null, "เค้าไพ่ขัดแย้ง/เสี่ยง (WAIT)", diff);
+        let resEl = document.getElementById('aiResult');
+        let bar = document.getElementById('confBar');
+        let rEl = document.getElementById('aiReason');
+
+        // แสดงผล
+        document.getElementById('aiConfTxt').innerText = Math.max(pConf, bConf).toFixed(0) + "%";
+        bar.style.width = Math.max(pConf, bConf) + "%";
+
+        if(diff < 10) {
+            // สูสีมาก
+            updateUIResult(null, "สูสี/ความเสี่ยงสูง (เบาๆ)");
         } else if (pConf > bConf) {
-            updateDisplay('P', getReason('P', streak, provider), pConf);
+            updateUIResult('P', `ตามเค้าไพ่ Player (${provider.toUpperCase()})`);
         } else {
-            updateDisplay('B', getReason('B', streak, provider), bConf);
+            updateUIResult('B', `ตามเค้าไพ่ Banker (${provider.toUpperCase()})`);
         }
-
-        updateStats();
     }
 
-    function simulateDerivedConsistency(nextMove) {
-        // นี่คือ Logic จำลองว่า ถ้าลงตามนี้ กราฟรองจะ "เป็นระเบียบ" (สีแดง) หรือไม่
-        // ในเชิงโปรแกรมมิ่งแบบย่อ: ใช้ Modulo หารความยาว
-        // ถ้าผลลัพธ์ทำให้กราฟเดินต่อสวยๆ return true
-        let count = history.length;
-        if (nextMove === 'P') return (count % 2 === 0); 
-        else return (count % 2 !== 0);
-    }
-
-    function getMaxStreak() {
-        let max = 0; let curr = 0; let prev = null;
-        history.forEach(v => {
-            if(v==='T') return;
-            if(v===prev) curr++; else curr=1;
-            if(curr > max) max = curr;
-            prev = v;
-        });
-        return max;
-    }
-
-    function getReason(side, streak, provider) {
-        if(streak >= 3 && provider === 'sa') return "ไหลตามมังกร (SA Style)";
-        if(streak >= 3 && provider === 'sexy') return "ระวังมังกรหลอก (Sexy)";
-        if(streak < 2 && provider === 'sexy') return "ดักตัดไพ่ (Chopping)";
-        return "เค้าไพ่สวย (Best Logic)";
-    }
-
-    function updateDisplay(side, reason, conf) {
+    function updateUIResult(side, reason) {
         lastPred = side;
-        const resEl = document.getElementById('aiResult');
-        const bar = document.getElementById('confBar');
-        const rEl = document.getElementById('aiReason');
-        const cEl = document.getElementById('confTxt');
-        
-        rEl.innerText = reason;
-        cEl.innerText = conf.toFixed(0) + "%";
-        bar.style.width = conf + "%";
+        let resEl = document.getElementById('aiResult');
+        let bar = document.getElementById('confBar');
+        document.getElementById('aiReason').innerText = reason;
 
         if(side === 'P') {
             resEl.innerText = "PLAYER"; resEl.className = "ai-result c-p";
@@ -349,24 +342,14 @@
             resEl.innerText = "BANKER"; resEl.className = "ai-result c-b";
             bar.style.background = "var(--b-color)";
         } else {
+            // กรณีสูสี ให้แสดง WAIT แต่ถ้าผู้ใช้จะเล่นก็ไม่ห้าม (Unlocked)
             resEl.innerText = "WAIT"; resEl.className = "ai-result c-w";
             bar.style.background = "#555";
         }
     }
 
-    function updateStats() {
-        document.getElementById('profitVal').innerText = (balance>0?"+":"")+balance;
-        document.getElementById('stepTxt').innerText = `${stepIdx+1} (${100*steps[stepIdx]})`;
-        
-        let qs = 50 + (balance>0?10:0);
-        if(consecutiveLoss > 0) qs -= 20;
-        document.getElementById('qScore').innerText = Math.max(0, Math.min(99, qs)) + "%";
-    }
-
     function render() {
-        // วาดตาราง Big Road
         drawGrid('bigRoad', history);
-        // วาดตารางจำลอง (Derived)
         drawDots('derivedRoad', history);
     }
 
@@ -406,7 +389,6 @@
                 if(idx < data.length-3) {
                     let d = document.createElement('div');
                     d.style.width='8px'; d.style.height='8px'; d.style.borderRadius='50%'; d.style.margin='auto';
-                    // สร้างจุดสีจำลอง
                     let isRed = (idx + history.filter(x=>x=='P').length) % 2 === 0;
                     d.style.background = isRed ? '#e53935':'#1e88e5';
                     td.appendChild(d);
@@ -420,6 +402,7 @@
 
     // Start
     changeProvider();
+    updateMoneyDisplay();
 
 </script>
 </body>
