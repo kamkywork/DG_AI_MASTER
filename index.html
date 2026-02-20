@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI MASTER V.7 PRO - ภาษาไทย</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         :root { --bg-body: #050505; --bg-card: #121212; --primary: #ffd700; --p-color: #2196f3; --b-color: #ff1744; --t-color: #43a047; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Sarabun', sans-serif; }
@@ -34,6 +38,14 @@
         .m-label { font-size: 0.75rem; color: #888; }
         .m-val { font-family: 'Teko'; font-size: 2.2rem; font-weight: 600; }
 
+        /* กล่องตั้งค่าระบบเดินเงิน & Stop Loss */
+        .settings-box { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px solid #222; }
+        .set-label { font-size: 0.8rem; color: #888; margin-bottom: 8px; font-weight: 600; }
+        .step-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 15px; }
+        .set-input { width: 100%; background: #000; border: 1px solid #444; color: var(--primary); padding: 8px 5px; border-radius: 6px; text-align: center; font-family: 'Teko', sans-serif; font-size: 1.2rem; outline: none; transition: 0.3s; }
+        .set-input:focus { border-color: var(--primary); box-shadow: 0 0 5px rgba(255,215,0,0.3); }
+        .stop-loss-input { width: 100%; text-align: left; padding: 8px 15px; color: #ff1744; }
+
         /* ตาราง Big Road */
         .road-header { font-size: 0.8rem; color: #666; margin: 15px 0 5px 5px; font-weight: 600; }
         .grid-container { background: #000; border-radius: 10px; padding: 5px; overflow-x: auto; border: 1px solid #222; }
@@ -45,11 +57,7 @@
         .bd-p { background: var(--p-color); }
         .bd-b { background: var(--b-color); }
         /* สัญลักษณ์เสมอ (ขีดเขียว) */
-        .tie-slash { 
-            position: absolute; width: 100%; height: 2px; background: #00e676; 
-            top: 50%; left: 0; transform: rotate(-45deg); box-shadow: 0 0 3px #000;
-            z-index: 10;
-        }
+        .tie-slash { position: absolute; width: 100%; height: 2px; background: #00e676; top: 50%; left: 0; transform: rotate(-45deg); box-shadow: 0 0 3px #000; z-index: 10; }
 
         /* ปุ่มควบคุม */
         .controls { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: #0a0a0a; padding: 12px; border-top: 1px solid #333; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
@@ -60,11 +68,11 @@
         .btn-b { background: var(--b-color); border-bottom: 4px solid #b71c1c; }
         .btn:active { transform: translateY(2px); border-bottom-width: 0; }
         .sub-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .sub-btn { padding: 10px; background: #222; color: #aaa; border: 1px solid #333; border-radius: 8px; font-size: 0.9rem; font-weight: 600; }
+        .sub-btn { padding: 10px; background: #222; color: #aaa; border: 1px solid #333; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
     </style>
 </head>
 <body>
-<div class="app-frame">
+<div class="app-frame" id="captureArea">
     <header class="header">
         <div class="logo">AI MASTER <span>V.7 PRO</span></div>
         <select id="providerSelect" class="server-select" onchange="analyze()">
@@ -88,12 +96,12 @@
 
         <div class="ai-card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:0.8rem; font-weight:700; color:#666;">ประมวลผลด้วยระบบ AI </span>
+                <span style="font-size:0.8rem; font-weight:700; color:#666;">ประมวลผลด้วยระบบ AI</span>
                 <span id="aiConfTxt" style="font-family:'Teko'; color:var(--primary); font-size:1.4rem;">0%</span>
             </div>
             <div id="aiResult" class="ai-result c-w">รอข้อมูล</div>
             <div class="bar-bg"><div id="confBar" class="bar-fill"></div></div>
-            <div id="aiReason" style="font-size:0.85rem; color:#888;">กรุณาใส่ข้อมูลอย่างน้อย 6 ตา...</div>
+            <div id="aiReason" style="font-size:0.85rem; color:#888;">กรุณาใส่ข้อมูลอย่างน้อย 4 ตา...</div>
 
             <div class="money-box">
                 <div>
@@ -107,11 +115,33 @@
             </div>
         </div>
 
+        <div class="settings-box">
+            <div class="set-label">ปรับตัวคูณเดินเงิน (5 ไม้) - ตัวคูณ x ทุนเริ่มต้น (100)</div>
+            <div class="step-grid">
+                <input type="number" id="step1" class="set-input" value="1" onchange="updateUI()">
+                <input type="number" id="step2" class="set-input" value="2" onchange="updateUI()">
+                <input type="number" id="step3" class="set-input" value="4" onchange="updateUI()">
+                <input type="number" id="step4" class="set-input" value="8" onchange="updateUI()">
+                <input type="number" id="step5" class="set-input" value="16" onchange="updateUI()">
+            </div>
+            
+            <div class="set-label">ตั้งค่า Stop Loss (ตัดขาดทุนเมื่อยอดติดลบถึงที่กำหนด)</div>
+            <input type="number" id="stopLossLimit" class="set-input stop-loss-input" value="-1000" onchange="updateUI()">
+        </div>
+
+        <div class="settings-box" data-html2canvas-ignore="true">
+            <div class="set-label" style="text-align: center;">บันทึกรายงานสรุปผลประจำวัน</div>
+            <div class="sub-row" style="margin-top: 10px;">
+                <button class="sub-btn" style="background: #0277bd; border-color: #01579b; color: #fff;" onclick="exportJPG()">📸 สรุปผล (JPG)</button>
+                <button class="sub-btn" style="background: #c62828; border-color: #b71c1c; color: #fff;" onclick="exportPDF()">📄 สรุปผล (PDF)</button>
+            </div>
+        </div>
+
         <div class="road-header">ประวัติเค้าไพ่หลัก (BIG ROAD)</div>
         <div class="grid-container" id="bigRoad"></div>
     </main>
 
-    <footer class="controls">
+    <footer class="controls" data-html2canvas-ignore="true">
         <div class="btn-row">
             <button class="btn btn-p" onclick="addRes('P')">PLAYER</button>
             <button class="btn btn-t" onclick="addRes('T')">TIE</button>
@@ -125,31 +155,58 @@
 </div>
 
 <script>
-    let history = []; // เก็บประวัติทั้งหมด
+    let history = []; 
+    let stateHistory = []; 
     let balance = 0;
     let betStep = 0;
     let lastPred = null;
 
-    // ระบบเดินเงิน Martingale 5 ไม้ (100, 200, 400, 800, 1600)
-    const martSteps = [1, 2, 4, 8, 16];
+    // อ่านค่าตัวคูณเดินเงินจากหน้า UI
+    function getMartSteps() {
+        return [
+            parseFloat(document.getElementById('step1').value) || 1,
+            parseFloat(document.getElementById('step2').value) || 2,
+            parseFloat(document.getElementById('step3').value) || 4,
+            parseFloat(document.getElementById('step4').value) || 8,
+            parseFloat(document.getElementById('step5').value) || 16
+        ];
+    }
 
     function addRes(v) {
+        // ตรวจสอบ Stop Loss 
+        const stopLossLimit = parseFloat(document.getElementById('stopLossLimit').value) || -1000;
+        if (balance <= stopLossLimit) {
+            alert(`⚠️ ระบบระงับการวิเคราะห์ชั่วคราว!\nคุณขาดทุนสะสมถึงจุด Stop Loss (${stopLossLimit}) แล้ว\nแนะนำให้หยุดพักการลงทุนเพื่อจำกัดความเสียหายครับ`);
+            return; 
+        }
+
+        // บันทึกสถานะการเงิน "ก่อน" คำนวณ เพื่อเอาไว้ใช้ตอนกด Undo
+        stateHistory.push({
+            balance: balance,
+            betStep: betStep,
+            lastPred: lastPred,
+            resText: document.getElementById('lastResTxt').innerText,
+            resColor: document.getElementById('lastResTxt').style.color
+        });
+
+        const currentSteps = getMartSteps();
+
         // คิดคำนวณเงิน
         if (lastPred && v !== 'T') {
-            const betAmount = 100 * martSteps[betStep];
+            const betAmount = 100 * currentSteps[betStep];
             if (v === lastPred) {
                 // ชนะ
                 balance += (v === 'B' ? betAmount * 0.95 : betAmount);
                 document.getElementById('lastResTxt').innerText = "WIN ✓";
                 document.getElementById('lastResTxt').style.color = "#00e676";
-                betStep = 0; // กลับไปเริ่มไม้ 1
+                betStep = 0; 
             } else {
                 // แพ้
                 balance -= betAmount;
                 document.getElementById('lastResTxt').innerText = "LOSE ✗";
                 document.getElementById('lastResTxt').style.color = "#ff1744";
-                betStep++; // ทบไม้
-                if (betStep >= martSteps.length) betStep = 0; // แตกแล้วเริ่มใหม่
+                betStep++; 
+                if (betStep >= currentSteps.length) betStep = 0; 
             }
         }
         
@@ -167,12 +224,10 @@
 
         data.forEach(v => {
             if (v === 'T') {
-                // ถ้าเป็นเสมอ ให้เพิ่มข้อมูลเข้าไปในเม็ดล่าสุดของคอลัมน์ปัจจุบัน
                 if (currentCol.length > 0) {
                     let lastItem = currentCol[currentCol.length - 1];
                     lastItem.ties = (lastItem.ties || 0) + 1;
                 } else {
-                    // ถ้าเสมอมาเป็นเม็ดแรกของห้อง
                     currentCol.push({ type: 'T', ties: 1 });
                 }
             } else {
@@ -190,16 +245,23 @@
     }
 
     function updateUI() {
-        // แสดงผลเงินและกำไร
         document.getElementById('profitVal').innerText = Math.floor(balance).toLocaleString();
         document.getElementById('profitVal').style.color = balance >= 0 ? "#00e676" : "#ff1744";
         
-        const currentBet = 100 * martSteps[betStep];
+        const currentSteps = getMartSteps();
+        if (betStep >= currentSteps.length) betStep = 0; 
+        
+        const currentBet = 100 * currentSteps[betStep];
         document.getElementById('nextBetTxt').innerText = currentBet.toLocaleString();
         document.getElementById('stepNameTxt').innerText = "ไม้ที่ " + (betStep + 1);
         document.getElementById('stepNameTxt').style.color = betStep > 0 ? "#ff1744" : "#00e676";
 
-        // วาด Big Road แบบเว็บจริง
+        // แจ้งเตือน Stop Loss ที่ UI
+        const stopLossLimit = parseFloat(document.getElementById('stopLossLimit').value) || -1000;
+        if (balance <= stopLossLimit) {
+            document.getElementById('profitVal').innerText += " (STOP LOSS)";
+        }
+
         const container = document.getElementById('bigRoad');
         container.innerHTML = '';
         const bigRoad = generateBigRoad(history);
@@ -214,7 +276,6 @@
                     const d = document.createElement('div');
                     d.className = `bead bd-${item.type.toLowerCase()}`;
                     
-                    // ถ้ามีเสมอ ให้วาดขีดสีเขียว
                     if (item.ties > 0) {
                         const slash = document.createElement('div');
                         slash.className = 'tie-slash';
@@ -228,58 +289,177 @@
         }
         container.appendChild(tbl);
         container.scrollLeft = container.scrollWidth;
+
+        saveData(); // บันทึกข้อมูลอัตโนมัติเมื่อ UI อัปเดต
     }
 
     function analyze() {
         const filtered = history.filter(x => x !== 'T');
-        if (filtered.length < 6) return;
+        if (filtered.length < 4) {
+            document.getElementById('aiReason').innerText = "กรุณาใส่ข้อมูลอย่างน้อย 4 ตาเพื่อจับแพทเทิร์น...";
+            return;
+        }
 
-        // Predictor Logic: จำลองผลล่วงหน้า
-        const pWeight = calculateWeight('P', filtered);
-        const bWeight = calculateWeight('B', filtered);
+        const provider = document.getElementById('providerSelect').value;
+        const bigRoad = generateBigRoad(filtered);
+        
+        let pScore = 50; 
+        let bScore = 50;
+        let reason = "วิเคราะห์ตามความน่าจะเป็นพื้นฐาน";
 
-        let total = pWeight + bWeight + 0.1;
-        let pConf = (pWeight / total) * 100;
-        let bConf = (bWeight / total) * 100;
+        const lastCol = bigRoad[bigRoad.length - 1];
+        const prevCol = bigRoad.length > 1 ? bigRoad[bigRoad.length - 2] : [];
+        const lastResult = lastCol[0].type;
+        const oppositeResult = lastResult === 'P' ? 'B' : 'P';
+
+        // 1. ตรรกะจับมังกร
+        if (lastCol.length >= 3) {
+            let bonus = provider === 'sa' ? 30 : 15; 
+            if (lastResult === 'P') pScore += bonus;
+            else bScore += bonus;
+            reason = "ตรวจพบเค้าไพ่มังกร แนะนำให้แทงตามน้ำไหล";
+        }
+        // 2. ตรรกะจับปิงปอง
+        else if (bigRoad.length >= 4 && lastCol.length === 1 && prevCol.length === 1) {
+            let bonus = provider === 'sexy' ? 30 : 15; 
+            if (oppositeResult === 'P') pScore += bonus;
+            else bScore += bonus;
+            reason = "ตรวจพบเค้าไพ่ปิงปอง แนะนำให้แทงสวนสีล่าสุด";
+        }
+        // 3. ตรรกะสมดุล
+        else if (provider === 'dg') {
+            const pTotal = filtered.filter(x => x === 'P').length;
+            const bTotal = filtered.filter(x => x === 'B').length;
+            if (pTotal > bTotal) { bScore += 15; reason = "อิงตามสมดุลห้อง ฝั่งแดงมีโอกาสออกเพื่อตีตื้น"; }
+            else if (bTotal > pTotal) { pScore += 15; reason = "อิงตามสมดุลห้อง ฝั่งน้ำเงินมีโอกาสออกเพื่อตีตื้น"; }
+        }
+        // 4. ตรรกะเค้าไพ่ 2 ตัวตัด
+        else if (lastCol.length === 2 && prevCol.length >= 2) {
+            if (oppositeResult === 'P') pScore += 20;
+            else bScore += 20;
+            reason = "ตรวจพบเค้าไพ่สองตัวตัด ระวังการไหลสลับ";
+        }
+
+        let totalScore = pScore + bScore;
+        let pConf = (pScore / totalScore) * 100;
+        let bConf = (bScore / totalScore) * 100;
         
         const conf = Math.max(pConf, bConf);
-        document.getElementById('aiConfTxt').innerText = conf.toFixed(0) + "%";
-        document.getElementById('confBar').style.width = conf + "%";
+        const finalConf = conf > 95 ? 95 : conf; 
+
+        document.getElementById('aiConfTxt').innerText = finalConf.toFixed(0) + "%";
+        document.getElementById('confBar').style.width = finalConf + "%";
 
         const resEl = document.getElementById('aiResult');
-        if (Math.abs(pConf - bConf) < 12) {
+        const reasonEl = document.getElementById('aiReason');
+
+        if (Math.abs(pConf - bConf) < 8) {
             lastPred = null;
             resEl.innerText = "รอจังหวะ"; resEl.className = "ai-result c-w";
-            document.getElementById('aiReason').innerText = "เค้าไพ่สวิงสูง แนะนำให้รอสูตรนิ่ง";
+            reasonEl.innerText = "เค้าไพ่กำลังเปลี่ยนทรง หรือยังไม่ชัดเจน แนะนำให้ข้าม (Skip)";
         } else if (pConf > bConf) {
             lastPred = 'P';
             resEl.innerText = "PLAYER"; resEl.className = "ai-result c-p";
-            document.getElementById('aiReason').innerText = "วิเคราะห์พบเค้าไพ่ไหลเข้าทางฝั่งน้ำเงิน";
+            reasonEl.innerText = reason;
         } else {
             lastPred = 'B';
             resEl.innerText = "BANKER"; resEl.className = "ai-result c-b";
-            document.getElementById('aiReason').innerText = "วิเคราะห์พบเค้าไพ่ไหลเข้าทางฝั่งแดง";
+            reasonEl.innerText = reason;
         }
     }
 
-    function calculateWeight(side, data) {
-        let sim = [...data, side];
-        let road = generateBigRoad(sim);
-        let weight = 0;
-        const last = road.length - 1;
-        
-        // กฎ 3 เกลอจำลอง
-        if (last >= 1) {
-            if (road[last].length === road[last-1].length) weight += 25;
-            if (road[last].length === 1) weight += 10;
-        }
-        return weight;
-    }
+    function undo() { 
+        if (history.length === 0) return; 
 
-    function undo() { history.pop(); updateUI(); analyze(); }
-    function resetGame() { if(confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่?")) location.reload(); }
+        history.pop(); 
+        const prevState = stateHistory.pop(); 
+        if (prevState) {
+            balance = prevState.balance;
+            betStep = prevState.betStep;
+            lastPred = prevState.lastPred;
+            document.getElementById('lastResTxt').innerText = prevState.resText;
+            document.getElementById('lastResTxt').style.color = prevState.resColor;
+        }
+
+        updateUI(); 
+        analyze(); 
+    }
     
+    // ฟังก์ชันสร้างรายงานประจำวันเป็นไฟล์ภาพ JPG
+    function exportJPG() {
+        const element = document.getElementById('captureArea'); 
+        html2canvas(element, { backgroundColor: '#050505', scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            const dateStr = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
+            link.download = `รายงานสรุปผล_${dateStr}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        });
+    }
+
+    // ฟังก์ชันสร้างรายงานประจำวันเป็นไฟล์ PDF
+    function exportPDF() {
+        const element = document.getElementById('captureArea');
+        const dateStr = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
+        const opt = {
+            margin:       0.1,
+            filename:     `รายงานสรุปผล_${dateStr}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, backgroundColor: '#050505' },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+
+    // ฟังก์ชันบันทึกข้อมูลลง LocalStorage
+    function saveData() {
+        const appData = {
+            history: history,
+            stateHistory: stateHistory,
+            balance: balance,
+            betStep: betStep,
+            lastPred: lastPred,
+            steps: getMartSteps(),
+            stopLoss: document.getElementById('stopLossLimit').value,
+            provider: document.getElementById('providerSelect').value
+        };
+        localStorage.setItem('aiMasterData', JSON.stringify(appData));
+    }
+
+    // ฟังก์ชันโหลดข้อมูลจาก LocalStorage
+    function loadData() {
+        const saved = localStorage.getItem('aiMasterData');
+        if (saved) {
+            const data = JSON.parse(saved);
+            history = data.history || [];
+            stateHistory = data.stateHistory || [];
+            balance = data.balance || 0;
+            betStep = data.betStep || 0;
+            lastPred = data.lastPred || null;
+
+            if (data.steps && data.steps.length === 5) {
+                document.getElementById('step1').value = data.steps[0];
+                document.getElementById('step2').value = data.steps[1];
+                document.getElementById('step3').value = data.steps[2];
+                document.getElementById('step4').value = data.steps[3];
+                document.getElementById('step5').value = data.steps[4];
+            }
+            if (data.stopLoss) document.getElementById('stopLossLimit').value = data.stopLoss;
+            if (data.provider) document.getElementById('providerSelect').value = data.provider;
+        }
+    }
+
+    function resetGame() { 
+        if(confirm("ต้องการล้างข้อมูลทั้งหมดและเริ่มรอบใหม่หรือไม่?")) {
+            localStorage.removeItem('aiMasterData');
+            location.reload(); 
+        }
+    }
+    
+    // --- โหลดข้อมูลตอนเริ่มต้นระบบ ---
+    loadData();
     updateUI();
+    if (history.length > 0) analyze();
 </script>
 </body>
 </html>

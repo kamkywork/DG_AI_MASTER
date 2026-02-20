@@ -1,4 +1,4 @@
-const CACHE_NAME = 'baccarat ai-app-v168'; // <--- เปลี่ยนเลขตรงนี้ทุกครั้งที่อัปเดตเว็บ (v3, v4, v5...)
+const CACHE_NAME = 'baccarat-ai-app-888'; // <--- เปลี่ยนเลขตรงนี้ทุกครั้งที่อัปเดตเว็บ (v3, v4, v5...)
 const urlsToCache = [
   './',
   './index.html',
